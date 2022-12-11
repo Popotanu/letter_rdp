@@ -1,7 +1,14 @@
+// Tokenizer spec
+// mapping a rule and a type
+const Spec = [
+  [/^\d+/, "NUMBER"],
+  [/^"[^"]*"/, "STRING"],
+  [/^\'[^\']*\'/, "STRING"],
+];
+
 // Tokenizer class
 //
 // Lazily pulls a token from a stream.
-
 class Tokenizer {
   // initializes the string
 
@@ -29,42 +36,31 @@ class Tokenizer {
     // "tanu".slice(1) => "anu";
     const string = this._string.slice(this._cursor);
 
-    // Numbers: \d+
-    // /^\d+/.exec("12345")[0] => '12345'
-    let matched = /^\d+/.exec(string);
-    if (matched !== null) {
-      this._cursor += matched[0].length;
-      while (!Number.isNaN(Number(string[this._cursor]))) {
-        number += string[this._cursor++];
+    for (const [regexp, tokenType] of Spec) {
+      const tokenValue = this._match(regexp, string);
+
+      // couldnt match this rule, continue.
+      if (tokenValue == null) {
+        continue;
       }
 
       return {
-        type: "NUMBER",
-        value: matched[0],
+        type: tokenType,
+        value: tokenValue,
       };
     }
 
-    // String:
-    // double quotes
-    matched = /^"[^"]*"/.exec(string);
-    if (matched !== null) {
-      this._cursor += matched[0].length;
-      return {
-        type: "STRING",
-        value: matched[0],
-      };
-    }
-    // single quater
-    matched = /^\'[^\']*\'/.exec(string);
-    if (matched !== null) {
-      this._cursor += matched[0].length;
-      return {
-        type: "STRING",
-        value: matched[0],
-      };
+    throw new SyntaxError(`Unexpected token: "${string[0]}"`);
+  }
+
+  _match(regexp, string) {
+    const matched = regexp.exec(string);
+    if (matched == null) {
+      return null;
     }
 
-    return null;
+    this._cursor += matched[0].length;
+    return matched[0];
   }
 }
 
