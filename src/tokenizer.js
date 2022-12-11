@@ -29,30 +29,28 @@ class Tokenizer {
     // "tanu".slice(1) => "anu";
     const string = this._string.slice(this._cursor);
 
-    // Numbers:
-    if (!Number.isNaN(Number(string[0]))) {
-      let number = "";
+    // Numbers: \d+
+    // /^\d+/.exec("12345")[0] => '12345'
+    let matched = /^\d+/.exec(string);
+    if (matched !== null) {
+      this._cursor += matched[0].length;
       while (!Number.isNaN(Number(string[this._cursor]))) {
         number += string[this._cursor++];
       }
 
       return {
         type: "NUMBER",
-        value: number,
+        value: matched[0],
       };
     }
 
     // String:
-    if (string[0] === '"') {
-      let s = "";
-      do {
-        s += string[this._cursor++];
-      } while (string[this._cursor] !== '"' && !this.isEOF());
-
-      s += this._cursor++; // skip the closing "
+    matched = /^"[^"]*"/.exec(string);
+    if (matched !== null) {
+      this._cursor += matched[0].length;
       return {
         type: "STRING",
-        value: s,
+        value: matched[0],
       };
     }
 
