@@ -1,7 +1,16 @@
 // Tokenizer spec
 // mapping a rule and a type
 const Spec = [
+  // ------------------------------------------------------------
+  // Whitespace:
+  [/^\s+/, null],
+
+  // ------------------------------------------------------------
+  // Numbers:
   [/^\d+/, "NUMBER"],
+
+  // ------------------------------------------------------------
+  // Strings:
   [/^"[^"]*"/, "STRING"],
   [/^\'[^\']*\'/, "STRING"],
 ];
@@ -42,6 +51,11 @@ class Tokenizer {
       // couldnt match this rule, continue.
       if (tokenValue == null) {
         continue;
+      }
+
+      // should skip token, e.g. whitespace
+      if (tokenType == null) {
+        return this.getNextToken();
       }
 
       return {

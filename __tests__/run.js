@@ -4,7 +4,7 @@ const { Parser } = require("../src/parser");
 
 const parser = new Parser();
 
-const programNum = `42`;
+const programNum = `  42  `;
 const programStr = `"tanu12"`;
 const programStr2 = `'tanu12'`;
 
