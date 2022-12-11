@@ -45,7 +45,17 @@ class Tokenizer {
     }
 
     // String:
+    // double quotes
     matched = /^"[^"]*"/.exec(string);
+    if (matched !== null) {
+      this._cursor += matched[0].length;
+      return {
+        type: "STRING",
+        value: matched[0],
+      };
+    }
+    // single quater
+    matched = /^\'[^\']*\'/.exec(string);
     if (matched !== null) {
       this._cursor += matched[0].length;
       return {
