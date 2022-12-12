@@ -48,11 +48,14 @@ class Parser {
    * 降下再帰において,左再帰は無限ループに陥る
    * ので, 左再帰を除去しなければならない
    */
-  StatementList() {
+  StatementList(stopLookahead = null) {
+    console.log("=======StatementList========");
     const statementList = [this.Statement()];
-    while (this._lookahead != null) {
+    while (this._lookahead != null && this._lookahead.type !== stopLookahead) {
       statementList.push(this.Statement());
     }
+
+    console.table(statementList);
 
     return statementList;
   }
@@ -60,10 +63,45 @@ class Parser {
   /*
    * Statement
    *  : ExpressionStatement
-     ;
+   *  : BlockStatement
+   *  : EmptyStatement
+   *  ;
    */
   Statement() {
-    return this.ExpressionStatement();
+    // 次に適用すべき規則を判定するため, トークンを先読みする(予言的構文解析)
+    switch (this._lookahead.type) {
+      case ";":
+        return this.EmptyStatement();
+      case "{":
+        return this.BlockStatement();
+      default:
+        return this.ExpressionStatement();
+    }
+  }
+  EmptyStatement() {
+    this._eat(";");
+    return {
+      type: "EmptyStatement",
+    };
+  }
+
+  /*
+   * BlockStatement
+   *   : '{' OptStatementList '}'
+   *   ;
+   */
+  BlockStatement() {
+    console.log("== BlockStatement====");
+    this._eat("{");
+
+    // stopLookaheadとして'}'を与える.ブロックの終わり
+    const body = this._lookahead.type !== "}" ? this.StatementList("}") : [];
+    this._eat("}");
+    console.log(`body: ${body}`);
+    return {
+      type: "BlockStatement",
+      body,
+    };
   }
 
   /*
@@ -131,6 +169,8 @@ class Parser {
   _eat(tokenType) {
     const token = this._lookahead;
 
+    console.log("=======  _eat  ========= ");
+    console.log(token);
     if (token == null) {
       throw new SyntaxError(`Unexpected end of input, expected: "${tokenType}"`);
     }

@@ -7,7 +7,7 @@ const assert = require("assert");
  * List of tests
  */
 
-const tests = [require("./literals-test.js")];
+const tests = [require("./literals-test.js"), require("./block-test.js"), require("./empty-statement")];
 
 const parser = new Parser();
 
