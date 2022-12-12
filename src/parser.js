@@ -134,13 +134,13 @@ class Parser {
    */
   AdditiveExpression() {
     console.log("=======ADDITIVE_OPERATOR========");
-    let left = this.Literal();
+    let left = this.MultiplicativeExpression();
 
     while (this._lookahead.type === "ADDITIVE_OPERATOR") {
       // Operator: +, -
       const operator = this._eat("ADDITIVE_OPERATOR").value;
 
-      const right = this.Literal();
+      const right = this.MultiplicativeExpression();
 
       left = {
         type: "BinaryExpression",
@@ -154,12 +154,68 @@ class Parser {
     return left;
   }
 
+  /*
+   * MultiplicativeExpression
+   *   : Literal
+   *   | MultiplicativeExpression MULTIPLICATIVE_OPERATOR Literal -> Literal MULTIPLICATIVE_OPERATOR Literal MULTIPLICATIVE_OPERATOR Literal
+   */
+  MultiplicativeExpression() {
+    console.log("=======MULTIPLICATIVE_OPERATOR========");
+    let left = this.PrimaryExpression();
+
+    while (this._lookahead.type === "MULTIPLICATIVE_OPERATOR") {
+      // Operator: *, /
+      const operator = this._eat("MULTIPLICATIVE_OPERATOR").value;
+
+      const right = this.PrimaryExpression();
+
+      left = {
+        type: "BinaryExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    console.table(left);
+
+    return left;
+  }
+
+  /*
+   * PrimaryExpression
+   *   : Literal
+   *   ;
+   */
+  PrimaryExpression() {
+    console.log("========PrimaryExpression========");
+    switch (this._lookahead.type) {
+      case "(":
+        return this.ParenthesizedExpression();
+      default:
+        return this.Literal();
+    }
+  }
+
+  /*
+   * ParenthesizedExpression
+   *   : '(' Expression ')'
+   *   ;
+   */
+  ParenthesizedExpression() {
+    console.log("=========ParenthesizedExpression=======");
+    this._eat("(");
+    const expression = this.Expression();
+    this._eat(")");
+    // ()自体はASTを構成しない.カッコの対応だけチェックする
+    return expression;
+  }
+
   // Literal
   //    : NumericLiteral
   //    | StringLiteral
   //    ;
   Literal() {
-    // TODO: 次のリテラルがなにか判定する
     switch (this._lookahead.type) {
       case "NUMBER":
         return this.NumericLiteral();
