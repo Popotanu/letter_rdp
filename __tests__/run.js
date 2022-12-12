@@ -21,9 +21,9 @@ function exec() {
   /*
   * tanu
   */
-  "tanutanu"
+  "tanutanu";
 
-  //
+  // Number:
   32;
 
   `;
@@ -41,8 +41,9 @@ function test(program, expected) {
   assert.deepEqual(ast, expected);
 }
 
+exec();
 // run all tests:
 
-tests.forEach((testRun) => testRun(test));
+// tests.forEach((testRun) => testRun(test));
 
 console.log("all assertions passed!");

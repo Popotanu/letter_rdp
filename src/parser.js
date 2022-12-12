@@ -3,6 +3,7 @@
  * 再帰降下パーサ
  */
 
+const { runInThisContext } = require("vm");
 const { Tokenizer } = require("./tokenizer");
 
 class Parser {
@@ -30,13 +31,62 @@ class Parser {
 
   // main entry point
   // Program
-  //  : NumericLiteral
+  //  : StatementList
   //  ;
   Program() {
     return {
       type: "Program",
-      body: this.Literal(),
+      body: this.StatementList(),
     };
+  }
+
+  /*
+   * StatementList
+   *  : Statement
+   *  | StatementList Statement -> Statement Statement Statement Statement
+   *  ;
+   * 降下再帰において,左再帰は無限ループに陥る
+   * ので, 左再帰を除去しなければならない
+   */
+  StatementList() {
+    const statementList = [this.Statement()];
+    while (this._lookahead != null) {
+      statementList.push(this.Statement());
+    }
+
+    return statementList;
+  }
+
+  /*
+   * Statement
+   *  : ExpressionStatement
+     ;
+   */
+  Statement() {
+    return this.ExpressionStatement();
+  }
+
+  /*
+   * ExpressionStatement
+   *   : Expression ';'
+   *   ;
+   */
+  ExpressionStatement() {
+    const expression = this.Expression();
+    this._eat(";");
+    return {
+      type: "ExpressionStatement",
+      expression,
+    };
+  }
+
+  /*
+   * Expression
+   *   : Literal
+   *   ;
+   */
+  Expression() {
+    return this.Literal();
   }
 
   // Literal
