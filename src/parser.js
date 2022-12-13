@@ -134,24 +134,7 @@ class Parser {
    */
   AdditiveExpression() {
     console.log("=======ADDITIVE_OPERATOR========");
-    let left = this.MultiplicativeExpression();
-
-    while (this._lookahead.type === "ADDITIVE_OPERATOR") {
-      // Operator: +, -
-      const operator = this._eat("ADDITIVE_OPERATOR").value;
-
-      const right = this.MultiplicativeExpression();
-
-      left = {
-        type: "BinaryExpression",
-        operator,
-        left,
-        right,
-      };
-    }
-
-    console.log(left);
-    return left;
+    return this._BinaryExpression("MultiplicativeExpression", "ADDITIVE_OPERATOR");
   }
 
   /*
@@ -161,13 +144,17 @@ class Parser {
    */
   MultiplicativeExpression() {
     console.log("=======MULTIPLICATIVE_OPERATOR========");
-    let left = this.PrimaryExpression();
+    return this._BinaryExpression("PrimaryExpression", "MULTIPLICATIVE_OPERATOR");
+  }
 
-    while (this._lookahead.type === "MULTIPLICATIVE_OPERATOR") {
-      // Operator: *, /
-      const operator = this._eat("MULTIPLICATIVE_OPERATOR").value;
+  _BinaryExpression(builderName, operatorToken) {
+    console.log("===========_BinaryExpression=================");
+    let left = this[builderName]();
 
-      const right = this.PrimaryExpression();
+    while (this._lookahead.type == operatorToken) {
+      const operator = this._eat(operatorToken).value;
+
+      const right = this[builderName]();
 
       left = {
         type: "BinaryExpression",
@@ -178,7 +165,6 @@ class Parser {
     }
 
     console.table(left);
-
     return left;
   }
 
