@@ -1,30 +1,54 @@
 // Main test runner
 
 const { Parser } = require("../src/parser");
+const assert = require("assert");
+
+/*
+ * List of tests
+ */
+
+const tests = [
+  require("./literals-test.js"),
+  require("./block-test.js"),
+  require("./empty-statement"),
+  require("./math-test.js"),
+];
 
 const parser = new Parser();
 
-const programNum = `  " 42 "  `;
-const programStr = `"tanu12"`;
-const programStr2 = `'tanu12'`;
-const programComment = `
-
-// Number:
-42
-
-/**
- * tanutanu;
+/*
+ * for manual tests.
  */
 
+function exec() {
+  const program = `
 
-`;
+  /*
+  * tanu
+  */
+  "tanutanu";
 
-const astNum = parser.parse(programNum);
-const astStr = parser.parse(programStr);
-const astStr2 = parser.parse(programStr2);
-const astComment = parser.parse(programComment);
+  // Number:
+  32;
 
-console.log(JSON.stringify(astNum, null, 2));
-console.log(JSON.stringify(astStr, null, 2));
-console.log(JSON.stringify(astStr2, null, 2));
-console.log(JSON.stringify(astComment, null, 2));
+  `;
+
+  const ast = parser.parse(program);
+  console.log(JSON.stringify(ast, null, 2));
+}
+
+/*
+ * test function
+ */
+
+function test(program, expected) {
+  const ast = parser.parse(program);
+  assert.deepEqual(ast, expected);
+}
+
+exec();
+// run all tests:
+
+tests.forEach((testRun) => testRun(test));
+
+console.log("all assertions passed!");
