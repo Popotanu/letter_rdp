@@ -3,6 +3,7 @@
  * 再帰降下パーサ
  */
 
+const { isGeneratorFunction } = require("util/types");
 const { runInThisContext } = require("vm");
 const { Tokenizer } = require("./tokenizer");
 
@@ -124,7 +125,85 @@ class Parser {
    *   ;
    */
   Expression() {
-    return this.AdditiveExpression();
+    return this.AssignmentExpression();
+  }
+
+  /*
+   * AssignmentExpression
+   *  : AdditiveExpression
+   *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+   *  ;
+   */
+  AssignmentExpression() {
+    console.log("=======AssignmentExpression========");
+    const left = this.AdditiveExpression();
+
+    // 先読みする. opが=だったらleftを返す. e.g.) x = 42
+    // そうじゃなかったら先に何かしらの演算を施して,結果をleftに加える. e.g.) x = y + 42
+    if (!this._isAssignmentOperator(this._lookahead.type)) {
+      return left;
+    }
+
+    return {
+      type: "AssignmentExpression",
+      operator: this.AssignmentOperator().value,
+      left: this._checkValidAssignmentTarget(left),
+      // 左再帰の除去, 右から砕いていく
+      right: this.AssignmentExpression(),
+    };
+  }
+
+  /*
+   * AssignmentOperator
+   *  : SIMPLE_ASSIGN
+   *  : COMPLEX_ASSIGN
+   *  ;
+   */
+  AssignmentOperator() {
+    if (this._lookahead.type == "SIMPLE_ASSIGN") {
+      return this._eat("SIMPLE_ASSIGN");
+    }
+    return this._eat("COMPLEX_ASSIGN");
+  }
+
+  /*
+   * LeftHandSideExpression
+   *  : Identifier
+   *  ;
+   */
+  LeftHandSideExpression() {
+    return this.Identifier();
+  }
+
+  /*
+   * Identifier
+   *  : IDENTIFIER
+   *  ;
+   */
+  Identifier() {
+    const name = this._eat("IDENTIFIER").value;
+    return {
+      type: "Identifier",
+      name,
+    };
+  }
+
+  /*
+   * Extra check whether it's valid assignment target.
+   */
+  _checkValidAssignmentTarget(node) {
+    if (node.type === "Identifier") {
+      return node;
+    }
+
+    throw new SyntaxError("Invalid left-hand side in assignment expression");
+  }
+
+  /*
+   * Whether the token is an assignment operator
+   */
+  _isAssignmentOperator(tokenType) {
+    return tokenType === "SIMPLE_ASSIGN" || tokenType === "COMPLEX_ASSIGN";
   }
 
   /*
@@ -171,16 +250,28 @@ class Parser {
   /*
    * PrimaryExpression
    *   : Literal
+   *   | ParenthesizedExpression
+   *   | LeftHandSideExpression
    *   ;
    */
   PrimaryExpression() {
     console.log("========PrimaryExpression========");
+    if (this._isLiteral(this._lookahead.type)) {
+      return this.Literal();
+    }
     switch (this._lookahead.type) {
       case "(":
         return this.ParenthesizedExpression();
       default:
-        return this.Literal();
+        return this.LeftHandSideExpression();
     }
+  }
+
+  /*
+   * Whether the token is a literal.
+   */
+  _isLiteral(tokenType) {
+    return tokenType === "NUMBER" || tokenType === "STRING";
   }
 
   /*
@@ -235,6 +326,8 @@ class Parser {
   }
 
   // expects a token of a given type
+  // if token is expected, advance to next token.
+  // or not, raises an error.
   _eat(tokenType) {
     const token = this._lookahead;
 

@@ -12,6 +12,7 @@ const tests = [
   require("./block-test.js"),
   require("./empty-statement"),
   require("./math-test.js"),
+  require("./assignment-test.js"),
 ];
 
 const parser = new Parser();
@@ -29,7 +30,7 @@ function exec() {
   "tanutanu";
 
   // Number:
-  32;
+  x = y = 32;
 
   `;
 
