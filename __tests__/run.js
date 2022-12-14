@@ -33,6 +33,11 @@ function exec() {
   // Number:
   x = y = 32;
   let x =  32;
+  let a,b;
+  let a,b = 23;
+  r= 10;
+
+  let c = d = 10;
 
   `;
 
