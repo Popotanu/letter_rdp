@@ -13,6 +13,7 @@ const tests = [
   require("./empty-statement"),
   require("./math-test.js"),
   require("./assignment-test.js"),
+  require("./variable-test.js"),
 ];
 
 const parser = new Parser();
@@ -31,6 +32,7 @@ function exec() {
 
   // Number:
   x = y = 32;
+  let x =  32;
 
   `;
 
