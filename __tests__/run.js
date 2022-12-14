@@ -31,6 +31,7 @@ function exec() {
 
   // Number:
   x = y = 32;
+  42 =42;
 
   `;
 
