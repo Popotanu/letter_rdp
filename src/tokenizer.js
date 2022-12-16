@@ -72,6 +72,7 @@ const Spec = [
   // LOGICAL_OPERATOR : &&, ||
   [/^&&/, "LOGICAL_AND"],
   [/^\|\|/, "LOGICAL_OR"],
+  [/^!/, "LOGICAL_NOT"],
 
   // ------------------------------------------------------------
   // Strings:
