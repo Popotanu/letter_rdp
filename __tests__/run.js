@@ -19,6 +19,7 @@ const tests = [
   require("./equality-test"),
   require("./logical-test"),
   require("./unary-test"),
+  require("./while-test"),
 ];
 
 const parser = new Parser();
