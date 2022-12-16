@@ -67,6 +67,7 @@ class Parser {
    *  : BlockStatement
    *  : EmptyStatement
    *  : VariableStatement
+   *  : IfStatement
    *  ;
    */
   Statement() {
@@ -78,9 +79,37 @@ class Parser {
         return this.BlockStatement();
       case "let":
         return this.VariableStatement();
+      case "if":
+        return this.IfStatement();
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /*
+   * IfStatement
+   *   : 'if' '(' Expression ')' Statement
+   *   : 'if' '(' Expression ')' Statement 'else' Statement
+   *   ;
+   */
+  IfStatement() {
+    this._eat("if");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+
+    const consequent = this.Statement();
+
+    const alternate =
+      this._lookahead != null && this._lookahead.type === "else" ? this._eat("else") && this.Statement() : null;
+
+    return {
+      type: "IfStatement",
+      test,
+      consequent,
+      alternate,
+    };
   }
 
   /*

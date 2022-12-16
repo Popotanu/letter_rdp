@@ -34,6 +34,9 @@ function exec() {
   // Number:
   let x = 42;
 
+  if(x) {if (y) {} else {}
+  }else{};
+
   `;
 
   const ast = parser.parse(program);
