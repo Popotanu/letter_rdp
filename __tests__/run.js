@@ -38,6 +38,8 @@ function exec() {
   if(x) {if (y) {} else {}
   }else{};
 
+  let y = x + 5 > 10;
+
   `;
 
   const ast = parser.parse(program);
