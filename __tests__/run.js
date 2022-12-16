@@ -14,6 +14,8 @@ const tests = [
   require("./math-test.js"),
   require("./assignment-test.js"),
   require("./variable-test.js"),
+  require("./if-test.js"),
+  require("./relational-test"),
 ];
 
 const parser = new Parser();
@@ -31,13 +33,12 @@ function exec() {
   "tanutanu";
 
   // Number:
-  x = y = 32;
-  let x =  32;
-  let a,b;
-  let a,b = 23;
-  r= 10;
+  let x = 42;
 
-  let c = d = 10;
+  if(x) {if (y) {} else {}
+  }else{};
+
+  let y = x + 5 > 10;
 
   `;
 

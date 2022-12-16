@@ -67,6 +67,7 @@ class Parser {
    *  : BlockStatement
    *  : EmptyStatement
    *  : VariableStatement
+   *  : IfStatement
    *  ;
    */
   Statement() {
@@ -78,9 +79,37 @@ class Parser {
         return this.BlockStatement();
       case "let":
         return this.VariableStatement();
+      case "if":
+        return this.IfStatement();
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /*
+   * IfStatement
+   *   : 'if' '(' Expression ')' Statement
+   *   : 'if' '(' Expression ')' Statement 'else' Statement
+   *   ;
+   */
+  IfStatement() {
+    this._eat("if");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+
+    const consequent = this.Statement();
+
+    const alternate =
+      this._lookahead != null && this._lookahead.type === "else" ? this._eat("else") && this.Statement() : null;
+
+    return {
+      type: "IfStatement",
+      test,
+      consequent,
+      alternate,
+    };
   }
 
   /*
@@ -198,7 +227,7 @@ class Parser {
    */
   AssignmentExpression() {
     console.log("=======AssignmentExpression========");
-    const left = this.AdditiveExpression();
+    const left = this.RelationalExpression();
 
     // 先読みする. opが=だったらleftを返す. e.g.) x = 42
     // そうじゃなかったら先に何かしらの演算を施して,結果をleftに加える. e.g.) x = y + 42
@@ -226,6 +255,23 @@ class Parser {
       return this._eat("SIMPLE_ASSIGN");
     }
     return this._eat("COMPLEX_ASSIGN");
+  }
+
+  /*
+   * RELATIONAL_OPERATOR : >, >=, <, <=
+   *
+   *   x > y
+   *   x >= y
+   *   x < y
+   *   x <= y
+   *
+   * RelationalExpression
+   *   : AdditiveExpression
+   *   | AdditiveExpression RELATIONAL_OPERATOR RelationalExpression
+   *   ;
+   */
+  RelationalExpression() {
+    return this._BinaryExpression("AdditiveExpression", "RELATIONAL_OPERATOR");
   }
 
   /*
