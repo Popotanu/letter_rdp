@@ -82,8 +82,30 @@ class Parser {
         return this.VariableStatement();
       case "if":
         return this.IfStatement();
+      case "while":
+      case "do":
+      case "for":
+        return this.IterationStatement();
       default:
         return this.ExpressionStatement();
+    }
+  }
+
+  /*
+   * IterationStatement
+   *  : WhileStatement
+   *  | DoWhileStatement
+   *  | ForStatement
+   *  ;
+   */
+  IterationStatement() {
+    switch (this._lookahead.type) {
+      case "while":
+        return this.WhileStatement();
+      case "do":
+        return this.DoWhileStatement();
+      case "for":
+        return this.ForStatement();
     }
   }
 
