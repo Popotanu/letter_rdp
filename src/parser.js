@@ -227,7 +227,7 @@ class Parser {
    */
   AssignmentExpression() {
     console.log("=======AssignmentExpression========");
-    const left = this.AdditiveExpression();
+    const left = this.RelationalExpression();
 
     // 先読みする. opが=だったらleftを返す. e.g.) x = 42
     // そうじゃなかったら先に何かしらの演算を施して,結果をleftに加える. e.g.) x = y + 42
@@ -255,6 +255,23 @@ class Parser {
       return this._eat("SIMPLE_ASSIGN");
     }
     return this._eat("COMPLEX_ASSIGN");
+  }
+
+  /*
+   * RELATIONAL_OPERATOR : >, >=, <, <=
+   *
+   *   x > y
+   *   x >= y
+   *   x < y
+   *   x <= y
+   *
+   * RelationalExpression
+   *   : AdditiveExpression
+   *   | AdditiveExpression RELATIONAL_OPERATOR RelationalExpression
+   *   ;
+   */
+  RelationalExpression() {
+    return this._BinaryExpression("AdditiveExpression", "RELATIONAL_OPERATOR");
   }
 
   /*
