@@ -15,6 +15,7 @@ const tests = [
   require("./assignment-test.js"),
   require("./variable-test.js"),
   require("./if-test.js"),
+  require("./relational-test"),
 ];
 
 const parser = new Parser();
