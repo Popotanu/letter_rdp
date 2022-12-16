@@ -412,6 +412,7 @@ class Parser {
     return left;
   }
 
+  }
   /*
    * PrimaryExpression
    *   : Literal
