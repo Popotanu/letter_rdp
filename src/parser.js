@@ -227,7 +227,7 @@ class Parser {
    */
   AssignmentExpression() {
     console.log("=======AssignmentExpression========");
-    const left = this.EqualityExpression();
+    const left = this.LogicalOrExpression();
 
     // 先読みする. opが=だったらleftを返す. e.g.) x = 42
     // そうじゃなかったら先に何かしらの演算を施して,結果をleftに加える. e.g.) x = y + 42
@@ -255,6 +255,32 @@ class Parser {
       return this._eat("SIMPLE_ASSIGN");
     }
     return this._eat("COMPLEX_ASSIGN");
+  }
+  /*
+   * Logical OR expression
+   *
+   *   x || y
+   * LogicalAndExpression
+   *   : EqualityExpression LOGICAL_OR LogicalOrExpression
+   *   | EqualityExpression
+   *   ;
+   */
+  LogicalOrExpression() {
+    // || は && より優先順位が低い
+    return this._LogicalExpression("LogicalAndExpression", "LOGICAL_OR");
+  }
+
+  /*
+   * Logical AND expression
+   *
+   *   x && y
+   * LogicalAndExpression
+   *   : EqualityExpression LOGICAL_AND LogicalAndExpression
+   *   | EqualityExpression
+   *   ;
+   */
+  LogicalAndExpression() {
+    return this._LogicalExpression("EqualityExpression", "LOGICAL_AND");
   }
 
   /*
@@ -342,6 +368,27 @@ class Parser {
   MultiplicativeExpression() {
     console.log("=======MULTIPLICATIVE_OPERATOR========");
     return this._BinaryExpression("PrimaryExpression", "MULTIPLICATIVE_OPERATOR");
+  }
+
+  /*
+   * Generic helper for LogicalExpression nodes.
+   */
+  _LogicalExpression(builderName, operatorToken) {
+    let left = this[builderName]();
+
+    while (this._lookahead.type == operatorToken) {
+      const operator = this._eat(operatorToken).value;
+      const right = this[builderName]();
+
+      left = {
+        type: "LogicalExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    return left;
   }
 
   _BinaryExpression(builderName, operatorToken) {
