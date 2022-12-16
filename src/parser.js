@@ -221,13 +221,13 @@ class Parser {
 
   /*
    * AssignmentExpression
-   *  : AdditiveExpression
+   *  : EqualityExpression
    *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
    *  ;
    */
   AssignmentExpression() {
     console.log("=======AssignmentExpression========");
-    const left = this.RelationalExpression();
+    const left = this.LogicalOrExpression();
 
     // 先読みする. opが=だったらleftを返す. e.g.) x = 42
     // そうじゃなかったら先に何かしらの演算を施して,結果をleftに加える. e.g.) x = y + 42
@@ -256,6 +256,32 @@ class Parser {
     }
     return this._eat("COMPLEX_ASSIGN");
   }
+  /*
+   * Logical OR expression
+   *
+   *   x || y
+   * LogicalAndExpression
+   *   : EqualityExpression LOGICAL_OR LogicalOrExpression
+   *   | EqualityExpression
+   *   ;
+   */
+  LogicalOrExpression() {
+    // || は && より優先順位が低い
+    return this._LogicalExpression("LogicalAndExpression", "LOGICAL_OR");
+  }
+
+  /*
+   * Logical AND expression
+   *
+   *   x && y
+   * LogicalAndExpression
+   *   : EqualityExpression LOGICAL_AND LogicalAndExpression
+   *   | EqualityExpression
+   *   ;
+   */
+  LogicalAndExpression() {
+    return this._LogicalExpression("EqualityExpression", "LOGICAL_AND");
+  }
 
   /*
    * RELATIONAL_OPERATOR : >, >=, <, <=
@@ -272,6 +298,16 @@ class Parser {
    */
   RelationalExpression() {
     return this._BinaryExpression("AdditiveExpression", "RELATIONAL_OPERATOR");
+  }
+
+  /*
+   * EQUALITY_OPERATOR: ==, !=
+   *  : RelationalExpression EQUALITY_OPERATOR EqualityExpression
+   *  | RelationalExpression
+   *  ;
+   */
+  EqualityExpression() {
+    return this._BinaryExpression("RelationalExpression", "EQUALITY_OPERATOR");
   }
 
   /*
@@ -334,6 +370,27 @@ class Parser {
     return this._BinaryExpression("PrimaryExpression", "MULTIPLICATIVE_OPERATOR");
   }
 
+  /*
+   * Generic helper for LogicalExpression nodes.
+   */
+  _LogicalExpression(builderName, operatorToken) {
+    let left = this[builderName]();
+
+    while (this._lookahead.type == operatorToken) {
+      const operator = this._eat(operatorToken).value;
+      const right = this[builderName]();
+
+      left = {
+        type: "LogicalExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    return left;
+  }
+
   _BinaryExpression(builderName, operatorToken) {
     console.log("===========_BinaryExpression=================");
     let left = this[builderName]();
@@ -379,7 +436,13 @@ class Parser {
    * Whether the token is a literal.
    */
   _isLiteral(tokenType) {
-    return tokenType === "NUMBER" || tokenType === "STRING";
+    return (
+      tokenType === "NUMBER" ||
+      tokenType === "STRING" ||
+      tokenType == "true" ||
+      tokenType == "false" ||
+      tokenType == "null"
+    );
   }
 
   /*
@@ -406,9 +469,42 @@ class Parser {
         return this.NumericLiteral();
       case "STRING":
         return this.StringLiteral();
+      case "true":
+        return this.BooleanLiteral(true);
+      case "false":
+        return this.BooleanLiteral(false);
+      case "null":
+        return this.NullLiteral();
       default:
         throw new SyntaxError(`Literal: unexpected literal production`);
     }
+  }
+
+  /*
+   * BooleanLiteral
+   *   : "true"
+   *   | "false"
+   *   ;
+   */
+  BooleanLiteral(value) {
+    this._eat(value ? "true" : "false");
+    return {
+      type: "BooleanLiteral",
+      value,
+    };
+  }
+
+  /*
+   * NullLiteral
+   *   : "null"
+   *   ;
+   */
+  NullLiteral(value) {
+    this._eat("null");
+    return {
+      type: "NullLiteral",
+      value,
+    };
   }
 
   // NumericLiteral
