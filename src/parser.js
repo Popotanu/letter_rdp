@@ -5,6 +5,7 @@
 
 const { isGeneratorFunction } = require("util/types");
 const { runInThisContext } = require("vm");
+const { threadId } = require("worker_threads");
 const { Tokenizer } = require("./tokenizer");
 
 class Parser {
@@ -312,11 +313,11 @@ class Parser {
 
   /*
    * LeftHandSideExpression
-   *  : Identifier
+   *  : PrimaryExpression
    *  ;
    */
   LeftHandSideExpression() {
-    return this.Identifier();
+    return this.PrimaryExpression();
   }
 
   /*
@@ -362,12 +363,13 @@ class Parser {
 
   /*
    * MultiplicativeExpression
-   *   : Literal
-   *   | MultiplicativeExpression MULTIPLICATIVE_OPERATOR Literal -> Literal MULTIPLICATIVE_OPERATOR Literal MULTIPLICATIVE_OPERATOR Literal
+   *  : UnaryExpression
+   *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR UnaryExpression
+   *  ;
    */
   MultiplicativeExpression() {
     console.log("=======MULTIPLICATIVE_OPERATOR========");
-    return this._BinaryExpression("PrimaryExpression", "MULTIPLICATIVE_OPERATOR");
+    return this._BinaryExpression("UnaryExpression", "MULTIPLICATIVE_OPERATOR");
   }
 
   /*
@@ -413,10 +415,42 @@ class Parser {
   }
 
   /*
+   * UnaryExpression
+   *   : LeftHandSideExpression
+   *   | ADDITIVE_OPERATOR UnaryExpression
+   *   | LOGICAL_NOT UnaryExpression
+   *   ;
+   */
+  UnaryExpression() {
+    let operator;
+    switch (this._lookahead.type) {
+      // -xの-を識別するために二項演算子の-を再利用する
+      case "ADDITIVE_OPERATOR":
+        operator = this._eat("ADDITIVE_OPERATOR").value;
+        break;
+      case "LOGICAL_NOT":
+        operator = this._eat("LOGICAL_NOT").value;
+        break;
+    }
+
+    // ↑のcase条件に当てはまれば単項演算子
+    if (operator != null) {
+      return {
+        type: "UnaryExpression",
+        operator,
+        // --x は -(-x)として認識する
+        argument: this.UnaryExpression(),
+      };
+    }
+
+    return this.LeftHandSideExpression();
+  }
+
+  /*
    * PrimaryExpression
    *   : Literal
    *   | ParenthesizedExpression
-   *   | LeftHandSideExpression
+   *   | Identifier
    *   ;
    */
   PrimaryExpression() {
@@ -427,6 +461,30 @@ class Parser {
     switch (this._lookahead.type) {
       case "(":
         return this.ParenthesizedExpression();
+      case "IDENTIFIER":
+        return this.Identifier();
+      default:
+        return this.LeftHandSideExpression();
+    }
+  }
+
+  /*
+   * PrimaryExpression
+   *   : Literal
+   *   | ParenthesizedExpression
+   *   | Identifier
+   *   ;
+   */
+  PrimaryExpression() {
+    console.log("========PrimaryExpression========");
+    if (this._isLiteral(this._lookahead.type)) {
+      return this.Literal();
+    }
+    switch (this._lookahead.type) {
+      case "(":
+        return this.ParenthesizedExpression();
+      case "IDENTIFIER":
+        return this.Identifier();
       default:
         return this.LeftHandSideExpression();
     }
