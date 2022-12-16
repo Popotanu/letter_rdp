@@ -110,6 +110,27 @@ class Parser {
   }
 
   /*
+   * WhileStatement
+   *   : 'while' '(' Expression ')' Statement
+   *   ;
+   */
+  WhileStatement() {
+    this._eat("while");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+
+    const body = this.Statement();
+
+    return {
+      type: "WhileStatement",
+      test,
+      body,
+    };
+  }
+
+  /*
    * IfStatement
    *   : 'if' '(' Expression ')' Statement
    *   : 'if' '(' Expression ')' Statement 'else' Statement
