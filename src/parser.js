@@ -104,13 +104,12 @@ class Parser {
    */
   FunctionDeclaration() {
     this._eat("def");
-    const name = this.Identifier;
+    const name = this.Identifier();
 
     this._eat("(");
 
     // OptFormalParameterList
     const params = this._lookahead.type !== ")" ? this.FormalParameterList() : [];
-
     this._eat(")");
 
     const body = this.BlockStatement();
@@ -137,6 +136,20 @@ class Parser {
     } while (this._lookahead.type === "," && this._eat(","));
 
     return params;
+  }
+
+  /*
+   * ReturnStatement
+   *   : 'return' OptExpression
+   *   ;
+   */
+  ReturnStatement() {
+    this._eat("return");
+    const argument = this._lookahead.type !== ";" ? this.Expression() : null;
+    return {
+      type: "ReturnStatement",
+      argument,
+    };
   }
 
   /*
