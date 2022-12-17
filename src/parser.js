@@ -131,6 +131,29 @@ class Parser {
   }
 
   /*
+   * DoWhileStatement
+   *   : 'do' Statement 'while' '(' Expression ')' ';'
+   *   ;
+   */
+  DoWhileStatement() {
+    this._eat("do");
+    const body = this.Statement();
+
+    this._eat("while");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+    this._eat(";");
+
+    return {
+      type: "DoWhileStatement",
+      body,
+      test,
+    };
+  }
+
+  /*
    * IfStatement
    *   : 'if' '(' Expression ')' Statement
    *   : 'if' '(' Expression ')' Statement 'else' Statement
