@@ -82,9 +82,118 @@ class Parser {
         return this.VariableStatement();
       case "if":
         return this.IfStatement();
+      case "while":
+      case "do":
+      case "for":
+        return this.IterationStatement();
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /*
+   * IterationStatement
+   *  : WhileStatement
+   *  | DoWhileStatement
+   *  | ForStatement
+   *  ;
+   */
+  IterationStatement() {
+    switch (this._lookahead.type) {
+      case "while":
+        return this.WhileStatement();
+      case "do":
+        return this.DoWhileStatement();
+      case "for":
+        return this.ForStatement();
+    }
+  }
+
+  /*
+   * WhileStatement
+   *   : 'while' '(' Expression ')' Statement
+   *   ;
+   */
+  WhileStatement() {
+    this._eat("while");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+
+    const body = this.Statement();
+
+    return {
+      type: "WhileStatement",
+      test,
+      body,
+    };
+  }
+
+  /*
+   * DoWhileStatement
+   *   : 'do' Statement 'while' '(' Expression ')' ';'
+   *   ;
+   */
+  DoWhileStatement() {
+    this._eat("do");
+    const body = this.Statement();
+
+    this._eat("while");
+
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+    this._eat(";");
+
+    return {
+      type: "DoWhileStatement",
+      body,
+      test,
+    };
+  }
+
+  /*
+   * ForStatement
+   *   : 'for' '(' OptForStatementInit ';' OptExpression ';' OptExpression ')' Statement
+   *   ;
+   */
+  ForStatement() {
+    this._eat("for");
+    this._eat("(");
+
+    const init = this._lookahead.type !== ";" ? this.ForStatementInit() : null;
+    this._eat(";");
+
+    const test = this._lookahead.type !== ";" ? this.Expression() : null;
+    this._eat(";");
+
+    const update = this._lookahead.type !== ")" ? this.Expression() : null;
+    this._eat(")");
+
+    const body = this.Statement();
+
+    return {
+      type: "ForStatement",
+      init,
+      test,
+      update,
+      body,
+    };
+  }
+
+  /*
+   * ForStatementInit
+   *  : VariableStatementInit
+   *  | Expression
+   *  ;
+   */
+  ForStatementInit() {
+    // forの条件の1つ目で変数を宣言してもいいし,任意の式を書いてもいい
+    if (this._lookahead.type === "let") {
+      return this.VariableStatementInit();
+    }
+    return this.Expression();
   }
 
   /*
@@ -114,18 +223,33 @@ class Parser {
   }
 
   /*
+   * VariableStatementInit
+   *   : 'let' VariableStatementList
+   *   ;
+   */
+  VariableStatementInit() {
+    // forの条件内の変数宣言に使いたいから';'をeatしない
+    // for(let x=0 ; ;)
+    //     ^^^^^^^ これ
+    this._eat("let");
+    const declarations = this.VariableDeclarationList();
+    return {
+      type: "VariableStatement",
+      declarations,
+    };
+  }
+
+  /*
    * VariableStatement
    *   : 'let' VariableStatementList ';'
    *   ;
    */
   VariableStatement() {
-    this._eat("let");
-    const declarations = this.VariableDeclarationList();
+    // (forの条件内ではない)普通の変数宣言
+    // ちゃんと';'の存在を確認する.eatする
+    const VariableStatement = this.VariableStatementInit();
     this._eat(";");
-    return {
-      type: "VariableStatement",
-      declarations,
-    };
+    return VariableStatement;
   }
 
   /*
