@@ -146,6 +146,7 @@ class Parser {
   ReturnStatement() {
     this._eat("return");
     const argument = this._lookahead.type !== ";" ? this.Expression() : null;
+    this._eat(";");
     return {
       type: "ReturnStatement",
       argument,
