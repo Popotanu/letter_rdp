@@ -499,11 +499,88 @@ class Parser {
 
   /*
    * LeftHandSideExpression
-   *  : MemberExpression
+   *  : CallMemberExpression
    *  ;
    */
   LeftHandSideExpression() {
-    return this.MemberExpression();
+    return this.CallMemberExpression();
+  }
+
+  /*
+   * CallMemberExpression
+   *   : MemberExpression
+   *   | CallExpression
+   *   ;
+   */
+  CallMemberExpression() {
+    // Member part, might be part of a call
+    const member = this.MemberExpression();
+
+    // See if we have a call expression:
+    if (this._lookahead.type === "(") {
+      return this._CallExpression(member);
+    }
+
+    // SImple member expression:
+    return member;
+  }
+
+  /*
+   * Generic call expression helper.
+   *
+   * CallExpression
+   *   : Callee arguments
+   *   ;
+   *
+   * Callee
+   *   : MemberExpression
+   *   | CallExpression
+   *   ;
+   */
+  _CallExpression(callee) {
+    let callExpression = {
+      type: "CallExpression",
+      callee,
+      arguments: this.Arguments(),
+    };
+
+    // for nested chain call
+    if (this._lookahead.type === "(") {
+      callExpression = this._CallExpression(callExpression);
+    }
+
+    return callExpression;
+  }
+
+  /*
+   * Arguments
+   *   : '(' OptArgumentList ')'
+   *   ;
+   */
+  Arguments() {
+    this._eat("(");
+
+    const argumentList = this._lookahead.type !== ")" ? this.ArgumentList() : [];
+
+    this._eat(")");
+
+    return argumentList;
+  }
+
+  /*
+   * ArgumentList
+   *   : AssignmentExpression
+   *   | ArgumentList ',' AssignmentExpression
+   */
+  ArgumentList() {
+    // foo(bar = 1, baz = 2)
+    const argumentList = [];
+
+    do {
+      argumentList.push(this.AssignmentExpression());
+    } while (this._lookahead.type === "," && this._eat(","));
+
+    return argumentList;
   }
 
   /*
