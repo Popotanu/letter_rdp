@@ -499,11 +499,52 @@ class Parser {
 
   /*
    * LeftHandSideExpression
-   *  : PrimaryExpression
+   *  : MemberExpression
    *  ;
    */
   LeftHandSideExpression() {
-    return this.PrimaryExpression();
+    return this.MemberExpression();
+  }
+
+  /*
+   * MemberExpression
+   *   : PrimaryExpression
+   *   | MemberExpression '.' Identifier
+   *   | MemberExpression '[' Expression ']'
+   */
+  MemberExpression() {
+    let object = this.PrimaryExpression();
+
+    while (this._lookahead.type === "." || this._lookahead.type === "[") {
+      // MemberExpression '.' Identifier
+      if (this._lookahead.type === ".") {
+        this._eat(".");
+        const property = this.Identifier();
+        object = {
+          type: "MemberExpression",
+          computed: false,
+          object,
+          property,
+        };
+      }
+
+      // MemberExpression '[' Expression ']'
+      if (this._lookahead.type === "[") {
+        this._eat("[");
+        // 任意の式
+        // e.g.) x['z'], x[val], x[i+2]
+        const property = this.Expression();
+        this._eat("]");
+        object = {
+          type: "MemberExpression",
+          computed: true,
+          object,
+          property,
+        };
+      }
+    }
+
+    return object;
   }
 
   /*
@@ -523,7 +564,7 @@ class Parser {
    * Extra check whether it's valid assignment target.
    */
   _checkValidAssignmentTarget(node) {
-    if (node.type === "Identifier") {
+    if (node.type === "Identifier" || node.type === "MemberExpression") {
       return node;
     }
 
@@ -540,7 +581,7 @@ class Parser {
   /*
    * AdditiveExpression
    *   : Literal
-   *   | AdditiveExpression ADDITIVE_OPERATOR Literal -> Literal ADDITIVE_OPERATOR Literal ADDITIVE_OPERATOR Literal
+   *   | AdditiveExpression ADDITIVE_OPERATOR Literal -" Literal ADDITIVE_OPERATOR Literal ADDITIVE_OPERATOR Literal
    */
   AdditiveExpression() {
     console.log("=======ADDITIVE_OPERATOR========");
