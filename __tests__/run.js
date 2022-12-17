@@ -48,6 +48,9 @@ function exec() {
   }else{};
 
   let y = x + 5 > 10;
+  
+  console.log(tanu = 2);
+  tanu()();
 
   `;
 
