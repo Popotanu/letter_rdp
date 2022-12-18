@@ -854,7 +854,7 @@ class Parser {
   Super() {
     this._eat("super");
     return {
-      type: "super",
+      type: "Super",
     };
   }
 
