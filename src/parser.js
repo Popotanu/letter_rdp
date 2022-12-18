@@ -841,28 +841,6 @@ class Parser {
   }
 
   /*
-   * PrimaryExpression
-   *   : Literal
-   *   | ParenthesizedExpression
-   *   | Identifier
-   *   ;
-   */
-  PrimaryExpression() {
-    console.log("========PrimaryExpression========");
-    if (this._isLiteral(this._lookahead.type)) {
-      return this.Literal();
-    }
-    switch (this._lookahead.type) {
-      case "(":
-        return this.ParenthesizedExpression();
-      case "IDENTIFIER":
-        return this.Identifier();
-      default:
-        return this.LeftHandSideExpression();
-    }
-  }
-
-  /*
    * Whether the token is a literal.
    */
   _isLiteral(tokenType) {
