@@ -71,6 +71,7 @@ class Parser {
    *  : IfStatement
    *  : FunctionStatement
    *  : ReturnStatement
+   *  : ClassStatement
    *  ;
    */
   Statement() {
@@ -90,11 +91,46 @@ class Parser {
         return this.IterationStatement();
       case "def":
         return this.FunctionDeclaration();
+      case "class":
+        return this.ClassDeclaration();
+      case "return":
       case "return":
         return this.ReturnStatement();
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /*
+   * ClassDeclaration
+   *  : 'class' Identifier OptClassExtends    BlockStatement
+   *  :  class <className> [extends <parent>] { ... }
+   *  ;
+   */
+  ClassDeclaration() {
+    this._eat("class");
+
+    const id = this.Identifier();
+    const superClass = this._lookahead.type === "extends" ? this.ClassExtends() : null;
+
+    const body = this.BlockStatement();
+
+    return {
+      type: "ClassDeclaration",
+      id,
+      superClass,
+      body,
+    };
+  }
+
+  /*
+   * ClassExtends
+   *   : 'extends' Identifier
+   *   ;
+   */
+  ClassExtends() {
+    this._eat("extend");
+    return this.Identifier();
   }
 
   /*
