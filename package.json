@@ -1,0 +1,22 @@
+{
+  "name": "letter-rdp",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Popotanu/letter_rdp.git"
+  },
+  "author": "Popotanu <scrapmacaron@gmail.com> (https://tanutanu.example.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Popotanu/letter_rdp/issues"
+  },
+  "homepage": "https://github.com/Popotanu/letter_rdp#readme",
+  "dependencies": {
+    "json-diff": "^1.0.0"
+  }
+}
