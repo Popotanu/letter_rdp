@@ -3,9 +3,6 @@
  * 再帰降下パーサ
  */
 
-const { isGeneratorFunction } = require("util/types");
-const { runInThisContext } = require("vm");
-const { threadId } = require("worker_threads");
 const { Tokenizer } = require("./tokenizer");
 
 class Parser {
@@ -51,13 +48,10 @@ class Parser {
    * ので, 左再帰を除去しなければならない
    */
   StatementList(stopLookahead = null) {
-    console.log("=======StatementList========");
     const statementList = [this.Statement()];
     while (this._lookahead != null && this._lookahead.type !== stopLookahead) {
       statementList.push(this.Statement());
     }
-
-    console.table(statementList);
 
     return statementList;
   }
@@ -405,13 +399,11 @@ class Parser {
    *   ;
    */
   BlockStatement() {
-    console.log("== BlockStatement====");
     this._eat("{");
 
     // stopLookaheadとして'}'を与える.ブロックの終わり
     const body = this._lookahead.type !== "}" ? this.StatementList("}") : [];
     this._eat("}");
-    console.log(`body: ${body}`);
     return {
       type: "BlockStatement",
       body,
@@ -448,7 +440,6 @@ class Parser {
    *  ;
    */
   AssignmentExpression() {
-    console.log("=======AssignmentExpression========");
     const left = this.LogicalOrExpression();
 
     // 先読みする. opが=だったらleftを返す. e.g.) x = 42
@@ -701,7 +692,6 @@ class Parser {
    *   | AdditiveExpression ADDITIVE_OPERATOR Literal -" Literal ADDITIVE_OPERATOR Literal ADDITIVE_OPERATOR Literal
    */
   AdditiveExpression() {
-    console.log("=======ADDITIVE_OPERATOR========");
     return this._BinaryExpression("MultiplicativeExpression", "ADDITIVE_OPERATOR");
   }
 
@@ -712,7 +702,6 @@ class Parser {
    *  ;
    */
   MultiplicativeExpression() {
-    console.log("=======MULTIPLICATIVE_OPERATOR========");
     return this._BinaryExpression("UnaryExpression", "MULTIPLICATIVE_OPERATOR");
   }
 
@@ -738,7 +727,6 @@ class Parser {
   }
 
   _BinaryExpression(builderName, operatorToken) {
-    console.log("===========_BinaryExpression=================");
     let left = this[builderName]();
 
     while (this._lookahead.type == operatorToken) {
@@ -754,7 +742,6 @@ class Parser {
       };
     }
 
-    console.table(left);
     return left;
   }
 
@@ -800,7 +787,6 @@ class Parser {
    *   ;
    */
   PrimaryExpression() {
-    console.log("========PrimaryExpression========");
     if (this._isLiteral(this._lookahead.type)) {
       return this.Literal();
     }
@@ -876,7 +862,6 @@ class Parser {
    *   ;
    */
   ParenthesizedExpression() {
-    console.log("=========ParenthesizedExpression=======");
     this._eat("(");
     const expression = this.Expression();
     this._eat(")");
@@ -960,8 +945,6 @@ class Parser {
   _eat(tokenType) {
     const token = this._lookahead;
 
-    console.log("=======  _eat  ========= ");
-    console.log(token);
     if (token == null) {
       throw new SyntaxError(`Unexpected end of input, expected: "${tokenType}"`);
     }
