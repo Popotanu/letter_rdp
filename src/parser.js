@@ -94,7 +94,6 @@ class Parser {
       case "class":
         return this.ClassDeclaration();
       case "return":
-      case "return":
         return this.ReturnStatement();
       default:
         return this.ExpressionStatement();
