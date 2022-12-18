@@ -129,7 +129,7 @@ class Parser {
    *   ;
    */
   ClassExtends() {
-    this._eat("extend");
+    this._eat("extends");
     return this.Identifier();
   }
 
