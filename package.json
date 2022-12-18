@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "node __tests__/run.js"
   },
   "repository": {
     "type": "git",
