@@ -549,6 +549,11 @@ class Parser {
    *   ;
    */
   CallMemberExpression() {
+    // Super call:
+    if (this._lookahead.type === "super") {
+      return this._CallExpression(this.Super());
+    }
+
     // Member part, might be part of a call
     const member = this.MemberExpression();
 
@@ -791,6 +796,7 @@ class Parser {
    *   : Literal
    *   | ParenthesizedExpression
    *   | Identifier
+   *   | ThisExpression
    *   ;
    */
   PrimaryExpression() {
@@ -803,9 +809,35 @@ class Parser {
         return this.ParenthesizedExpression();
       case "IDENTIFIER":
         return this.Identifier();
+      case "this":
+        return this.ThisExpression();
       default:
         return this.LeftHandSideExpression();
     }
+  }
+
+  /*
+   * ThisExpression
+   *   ; 'this'
+   *   :
+   */
+  ThisExpression() {
+    this._eat("this");
+    return {
+      type: "ThisExpression",
+    };
+  }
+
+  /*
+   * Super
+   *   : 'super'
+   *   ;
+   */
+  Super() {
+    this._eat("super");
+    return {
+      type: "super",
+    };
   }
 
   /*
