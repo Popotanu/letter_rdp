@@ -2,6 +2,7 @@
 
 const { Parser } = require("../src/parser");
 const assert = require("assert");
+const jsonDiff = require("json-diff");
 
 /*
  * List of tests
@@ -65,7 +66,18 @@ function exec() {
 
 function test(program, expected) {
   const ast = parser.parse(program);
-  assert.deepEqual(ast, expected);
+
+  try {
+    assert.deepEqual(ast, expected);
+  } catch (error) {
+    if (error instanceof assert.AssertionError) {
+      console.error("AssertionError:", error.message);
+      console.error(jsonDiff.diffString(ast, expected));
+      throw error;
+    } else {
+      throw error;
+    }
+  }
 }
 
 exec();
