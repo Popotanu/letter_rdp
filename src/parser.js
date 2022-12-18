@@ -797,6 +797,7 @@ class Parser {
    *   | ParenthesizedExpression
    *   | Identifier
    *   | ThisExpression
+   *   | NewExpression
    *   ;
    */
   PrimaryExpression() {
@@ -811,9 +812,26 @@ class Parser {
         return this.Identifier();
       case "this":
         return this.ThisExpression();
+      case "new":
+        return this.NewExpression();
       default:
         return this.LeftHandSideExpression();
     }
+  }
+
+  /*
+   * NewExpression
+   *   : 'new' MemberExpression Arguments
+   *   :  new  MyNameSpace.MyClass(1,2);
+   *   ;
+   */
+  NewExpression() {
+    this._eat("new");
+    return {
+      type: "NewExpression",
+      callee: this.MemberExpression(),
+      arguments: this.Arguments(),
+    };
   }
 
   /*
